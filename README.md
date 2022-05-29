@@ -73,7 +73,7 @@ Este tutorial usa o Prisma v3.14.0. Instale o Prisma CLI como uma dependência d
 - **schema.prisma**: especifica sua conexão com o banco de dados e contém o esquema do banco de dados
 - **.env**: um arquivo dotenv normalmente usado para armazenar suas credenciais de banco de dados em um grupo de variáveis de ambiente
 
-# Conectando-se a um banco de dados
+# Conectando a um banco de dados
 
 Com o Prisma instalado, a configuração no seu computador é bem fácil. Para a demonstração neste tutorial, vamos nos conectar a um banco de dados SQLite. Para começar, abra o arquivo **datasource/schema.prisma** e atualize o conteúdo com o snippet de código abaixo:
 
@@ -113,9 +113,10 @@ Gere seus arquivos de migração SQL e execute-os no banco de dados com o comand
   ```bash
   npx prisma migrate dev --name initial
   ```
+
   O comando acima irá gerar a estrutura de pastas abaixo:
 
-  ```
+  ```bash
   prisma
  ┣ migrations
  ┃ ┣ 20220315212227_init
@@ -125,3 +126,35 @@ Gere seus arquivos de migração SQL e execute-os no banco de dados com o comand
  ┣ todos.sqlite
  ┗ todos.sqlite-journal
  ```
+
+# Configurando o Prisma Client e o Prisma Service
+
+O Prisma Client é um cliente de banco de dados de tipo seguro gerado a partir da definição do seu modelo Prisma. Ele expõe as operações CRUD personalizadas especificamente para seus modelos.
+
+Instale o Prisma Client com o comando abaixo:
+
+```bash
+npm install @prisma/client
+```
+
+Com o Prisma Client configurado, crie um arquivo prisma.service na pasta src para abstrair a API do Prisma Client para consultas de banco de dados em um serviço com o snippet de código abaixo:
+
+```ts
+import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async enableShutdownHooks(app: INestApplication) {
+    this.$on('beforeExit', async () => {
+      await app.close();
+    });
+  }
+}
+```
+
+No trecho de código acima, criamos um novo **PrismaService** que cuida da instanciar **PrismaClient** e se conectar ao banco de dados.
