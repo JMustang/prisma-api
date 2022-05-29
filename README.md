@@ -93,3 +93,35 @@ No trecho acima, especificamos o sqlite como nosso provedor de banco de dados. A
 ```.env
 DATABASE_URL="file:./todos.sqlite"
 ```
+
+# Criando o schema do banco de dados
+
+Com a conexão de banco de dados configurada, agora você pode criar suas tabelas de banco de dados definindo um schema no arquivo **schema.prisma**. Para a demonstração neste tutorial, vamos definir um esquema **Todo**, com o trecho de código abaixo:
+
+```js
+model Todo {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean? @default(false)
+  user        String
+}
+```
+
+Gere seus arquivos de migração SQL e execute-os no banco de dados com o comando abaixo:
+  
+  ```bash
+  npx prisma migrate dev --name initial
+  ```
+  O comando acima irá gerar a estrutura de pastas abaixo:
+
+  ```
+  prisma
+ ┣ migrations
+ ┃ ┣ 20220315212227_init
+ ┃ ┃ ┗ migration.sql
+ ┃ ┗ migration_lock.toml
+ ┣ schema.prisma
+ ┣ todos.sqlite
+ ┗ todos.sqlite-journal
+ ```
