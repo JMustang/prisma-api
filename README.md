@@ -158,3 +158,114 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 ```
 
 No trecho de código acima, criamos um novo **PrismaService** que cuida da instanciar **PrismaClient** e se conectar ao banco de dados.
+
+# Gerando um módulo de TODO
+
+Com o serviço Prisma configurado, gere um módulo **Todo** para toda a lógica **Todo** com o comando abaixo:
+
+```bash
+nest generate module todo
+```
+
+Em seguida, gere um arquivo service para o módulo de usuário com o comando abaixo:
+
+```bash
+nest generate service todo/service/todo --flat
+```
+
+Em seguida, atualize o conteúdo do arquivo **todo.service** com o snippet de código abaixo:
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../prisma.service';
+import { Todo, Prisma } from '@prisma/client';
+@Injectable()
+export class TodoService {
+  constructor(private prisma: PrismaService) {}
+  async getAllTodo(): Promise<Todo[]> {
+    return this.prisma.todo.findMany();
+  }
+  async getTodo(id: number): Promise<Todo | null> {
+    return this.prisma.todo.findUnique({ where: { id: Number(id) } });
+  }
+  async createTodo(data: Todo): Promise<Todo> {
+    return this.prisma.todo.create({
+      data,
+    });
+  }
+  async updateTodo(id: number): Promise<Todo> {
+    return this.prisma.todo.update({
+      where: { id: Number(id) },
+      data: { completed: true },
+    });
+  }
+  async deleteTodo(id: number): Promise<Todo> {
+    return this.prisma.todo.delete({
+      where: { id: Number(id) },
+    });
+  }
+}
+```
+
+No trecho de código acima, criamos todas as operações CRUD para o serviço do nosso usuário.
+
+Agora, gere um **todo** controller para definir todas as rotas da API para o serviço do usuário com o comando abaixo:
+
+```bash
+nest generate controller todo/controller/todo --flat
+```
+
+Atualize o conteúdo do arquivo **todo.controller.ts** com o snippet de código abaixo:
+
+```ts
+import {
+  Controller,
+  Get,
+  Param,
+  Post,
+  Body,
+  Put,
+  Delete,
+} from '@nestjs/common';
+import { TodoService } from '../service/todo.service';
+import { Todo } from '@prisma/client';
+@Controller('api/v1/todo')
+export class TodoController {
+  constructor(private readonly todoService: TodoService) {}
+  @Get()
+  async getAllTodo(): Promise<Todo[]> {
+    return this.todoService.getAllTodo();
+  }
+  @Post()
+  async createTodo(@Body() postData: Todo): Promise<Todo> {
+    return this.todoService.createTodo(postData);
+  }
+  @Get(':id')
+  async getTodo(@Param('id') id: number): Promise<Todo | null> {
+    return this.todoService.getTodo(id);
+  }
+  @Put(':id')
+  async Update(@Param('id') id: number): Promise<Todo> {
+    return this.todoService.updateTodo(id);
+  }
+  @Delete(':id')
+  async Delete(@Param('id') id: number): Promise<Todo> {
+    return this.todoService.deleteTodo(id);
+  }
+}
+```
+
+Abra o arquivo **todo.module.ts**, importe o **PrismaService** e adicione-o ao array **providers** com o snippet de código abaixo:
+
+```ts
+...
+import { PrismaService } from 'src/prisma.service';
+
+@Module({
+  controllers: [...],
+  providers: [..., PrismaService],
+})
+...
+```
+
+Neste ponto, você criou com sucesso sua API REST do Nest com Prisma!
