@@ -269,3 +269,5 @@ import { PrismaService } from 'src/prisma.service';
 ```
 
 Neste ponto, você criou com sucesso sua API REST do Nest com Prisma!
+Você pode testa usando **postman**, **thunder client** ou o **insomnia**,
+use o endpoint **"localhost:3000/api/v1/todo"**.
